@@ -8,6 +8,8 @@ from PIL import Image
 import io
 import cloudscraper
 import loadingscreen
+import webbrowser
+import search_display
 
 class main():
     def __init__(self) -> None:
@@ -36,29 +38,45 @@ class main():
         #sg.theme('DarkAmber')
         sg.change_look_and_feel("Topanga")
         mainList = self.request()
-        col_layout = [[sg.Text("Top 75",font=("Helvetica", 11))]]
+        self.mainList = mainList
+        col_layout = [[sg.Text("Top 75",font=("Helvetica", 11)),sg.Input(key="input"),sg.Button("Search!",key="inputButton")]]
         self.num = 1
         for i in mainList:
             thumbnail = self.convertimage(i['thumbnail'])
             #col_layout.append([[sg.T(i['name']),sg.T(f"ID:{i['id']}")],[sg.Image(data=thumbnail)]]) <- Unused for being hard to read + wrong layout.
             col_layout.append([sg.T(i['name']),sg.T("|"),sg.T(f"ID: {i['id']}"),sg.T("|"),sg.T(f"Placement: {i['position']}"),sg.T("|"),sg.T(f"Verifier: {i['verifier']['name']}")])
             col_layout.append([sg.Image(data=thumbnail)])
-            col_layout.append([sg.T("")]) #Padding
+            #play=self.convertimage("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.pngall.com%2Fwp-content%2Fuploads%2F5%2FPlay-Button-PNG-Picture.png&f=1&nofb=1&ipt=3ae1060bc1ec91c7474f0e20bca3a5eba32cba38a62491e20ad7c1c5ba88771f&ipo=images")
+            col_layout.append([sg.Button("Play Video!",key=i['video'])])
+            col_layout.append([sg.HorizontalSeparator(color='black')]) #Padding
         self.num = 0
         print(mainList)
         #col_layout.append()
         Column = sg.Column(col_layout,vertical_scroll_only=True,scrollable=True,size=(self.window_size[0],self.window_size[1]-50),sbar_width=5,sbar_background_color="grey",sbar_trough_color="black",key="col_key",size_subsample_height=99999)
         layout = [[Column],[sg.Button("Load more?",key="load")]]
         self.window = sg.Window('DemonList', layout,element_justification="r",finalize=True,keep_on_top=False,grab_anywhere=True,size=self.window_size,resizable=True)
+
+        # window.move_to_center()
+
         self.window['col_key'].Widget.configure(borderwidth=1, relief=sg.DEFAULT_FRAME_RELIEF)
         self.mainLoop()
     def mainLoop(self,temp = None):
          while True:             
             window, event, values = sg.read_all_windows()
+            print(window)
             if event == None:
-                raise SystemExit
+                window.close()
+            elif event in "inputButton":
+                print(values['input'])
+                search_display.main().layout(mainList=self.mainList,searchparam=values['input'])
+                
             else:
-                pass
+                
+                for i in self.mainList:
+                    if event == i['video']:
+                        webbrowser.open(event, new=2)
+                    
+            
                 #Issue caused possibly by running out of memory.
                 '''
                 if event in "load":
